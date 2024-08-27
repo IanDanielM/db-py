@@ -15,7 +15,7 @@
 -- MAGIC   .option("header", first_row_is_header) \
 -- MAGIC   .option("sep", delimiter) \
 -- MAGIC   .load(orders_24)
--- MAGIC
+-- MAGIC f
 -- MAGIC orders_23_df = spark.read.format(file_type) \
 -- MAGIC   .option("inferSchema", infer_schema) \
 -- MAGIC   .option("header", first_row_is_header) \
