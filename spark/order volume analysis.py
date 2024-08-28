@@ -51,17 +51,6 @@ display(source_orders_df)
 
 # COMMAND ----------
 
-# order volume by source and subsource
-source_subsource_orders_df = (orders_df
-                              .groupBy("Source", "SubSource")
-                              .count()
-                              .withColumnRenamed("count", "Total Orders")
-                              .orderBy(desc("Total Orders"))
-)
-display(source_subsource_orders_df)
-
-# COMMAND ----------
-
 TA_monthly_df = (orders_df
                  .withColumn("Year", year(to_date('dReceievedDate', 'dd/MM/yyyy HH:mm:ss')))
                  .alias("Year")
@@ -85,3 +74,7 @@ TA_yearly_df = (
     .orderBy("Year")
 )
 display(TA_yearly_df)
+
+# COMMAND ----------
+
+
