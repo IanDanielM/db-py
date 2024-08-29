@@ -55,6 +55,7 @@ order_item_exchanges_df = (
 # COMMAND ----------
 
 merged_orders_df = orders_24_df.union(orders_23_df)
+display(merged_orders_df)
 
 # COMMAND ----------
 
@@ -64,7 +65,7 @@ cleaned_columns = [col(column_name).alias(column_name.strip().replace(' ', '_').
                    for column_name in orders_23_df.columns]
 
 merged_orders_df = merged_orders_df.select(*cleaned_columns)
-
+display(merged_orders_df)
 
 # COMMAND ----------
 
@@ -92,21 +93,43 @@ display(merged_orders_df)
 # COMMAND ----------
 
 # factor in additional costs from order item resend
-from pyspark.sql.functions import col, sum
-additional_costs = order_item_resend_df.groupBy("OriginalOrderId").agg(sum("AdditionalCost").alias("TotalAdditionalCost"))
-merged_orders_df = (merged_orders_df
-                    .join(additional_costs, 
-                          merged_orders_df.nOrderId==order_item_resend_df.OriginalOrderId, "left")
-                    .withColumn("Total", col("Total") + col("TotalAdditionalCost"))
-                    .withColumn("OrderItemCostIncTax", col("OrderItemCostIncTax") + col("TotalAdditionalCost"))
-                    .drop("TotalAdditionalCost", "OriginalOrderId")
-)    
+from pyspark.sql.functions import col, sum, when
+from pyspark.sql.functions import udf
+from pyspark.sql.types import DoubleType
+
+# Calculate additional costs from order item resend
+additional_costs = order_item_resend_df.groupBy("OriginalOrderId").agg(
+    sum("AdditionalCost").alias("TotalAdditionalCost")
+)
+# Convert additional_costs to a dictionary for efficient lookup
+additional_costs_dict = dict(additional_costs.collect())
+
+@udf(returnType=DoubleType())
+def get_additional_cost(order_id):
+    return additional_costs_dict.get(order_id, 0.0)
+
+# Update the merged_orders_df
+merged_orders_df = merged_orders_df.withColumn(
+    "TotalAdditionalCost", 
+    get_additional_cost(col("nOrderId"))
+)
+
+merged_orders_df = merged_orders_df.withColumn(
+    "Total", 
+    col("Total") + col("TotalAdditionalCost")
+).withColumn(
+    "OrderItemCostIncTax", 
+    col("OrderItemCostIncTax") + col("TotalAdditionalCost")
+)
+
+display(merged_orders_df)
+
 
 # COMMAND ----------
 
 # remove unpaid orders and orders which have Redacted data
 merged_orders_df = merged_orders_df.filter((col("status") == "PAID") & (col("cEmailAddress") != "Redacted"))
-display(merged_orders_df)
+merged_orders_df.count()
 
 # COMMAND ----------
 
@@ -142,6 +165,7 @@ for column in columns_to_convert:
 
 # Update the Currency column to GBP
 merged_orders_df = merged_orders_df.withColumn("Currency", lit("GBP"))
+display(merged_orders_df)
 
 # COMMAND ----------
 
