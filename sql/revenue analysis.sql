@@ -79,6 +79,26 @@ ORDER BY
 
 -- COMMAND ----------
 
+SELECT
+  *
+FROM
+  order_data
+WHERE
+  Total > (
+    SELECT
+      AVG(Total) + 3 * STDDEV(Total)
+    FROM
+      order_data
+  )
+  OR Total < (
+    SELECT
+      AVG(Total) - 3 * STDDEV(Total)
+    FROM
+      order_data
+  )
+
+-- COMMAND ----------
+
 -- Profit margin analysis by product category.(spark)
 
 -- COMMAND ----------
