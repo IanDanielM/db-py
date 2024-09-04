@@ -15,19 +15,3 @@ unique_customers_df = (
     .agg(countDistinct("cEmailAddress").alias("unique_customers"))
 )
 display(unique_customers_df)
-
-# COMMAND ----------
-
-# Average items per order
-
-# COMMAND ----------
-
-# Most common product combinations in orders
-
-# COMMAND ----------
-
-# Distribution of customers by country
-
-# COMMAND ----------
-
-

@@ -80,7 +80,7 @@ ORDER BY
 -- COMMAND ----------
 
 SELECT
-  *
+  nOrderId, OrderItemSKU, OrderItemQuantity, ItemCategory, Country, Status, Source, SubSource, Currency, Total, OrderItemCostIncTax
 FROM
   order_data
 WHERE
@@ -96,6 +96,7 @@ WHERE
     FROM
       order_data
   )
+ORDER BY Total DESC
 
 -- COMMAND ----------
 
